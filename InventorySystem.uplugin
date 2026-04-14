@@ -10,10 +10,20 @@
 		{
 			"Name": "InventorySystem",
 			"Type": "Runtime",
-			"LoadingPhase": "PreLoadingScreen",
+			"LoadingPhase": "Default",
 			"WhitelistPlatforms": [
 				"Win64"
 			]
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "ItemSystem",
+			"Enabled": true
+		},
+		{
+			"Name": "Utils",
+			"Enabled": true
 		}
 	]
 }

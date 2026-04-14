@@ -10,7 +10,7 @@ namespace GameplayCommand
 		const TArray<FString>& Args
 		)
 	{
-		if (!Args.IsValidIndex(1))
+		if (!Args.IsValidIndex(0))
 		{
 			return;
 		}
@@ -20,6 +20,7 @@ namespace GameplayCommand
 																	   GetWorldImp()
 																	  )
 																 );
+		
 		if (GetInventoryInterface)
 		{
 			GetInventoryInterface->GetInventory()->GetInventoryComponent()->AddProxy(

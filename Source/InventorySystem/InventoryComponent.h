@@ -19,6 +19,8 @@ class INVENTORYSYSTEM_API UInventoryComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:
+	virtual void BeginPlay() override;
+	
 	TSharedPtr<FBasicProxy> AddProxy(
 		const FGameplayTag& ProxyType,
 		uint8 Num

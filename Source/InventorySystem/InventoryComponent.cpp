@@ -4,37 +4,53 @@
 
 #include "ItemDefine.h"
 
-TSharedPtr<FBasicProxy> UInventoryComponent::AddProxy(
-	const FGameplayTag& ProxyType,
-	uint8 Num
-	)
+void UInventoryComponent::BeginPlay()
 {
-#if UE_EDITOR || UE_CLIENT
-	if (GIsClient)
-	{
-		AddProxy_Server(ProxyType, Num);
-		return nullptr;
-	}
-#endif
+	Super::BeginPlay();
 
-	UAssetManager& AssetManager = UAssetManager::Get();
+	auto & AssetManager = UAssetManager::Get();
 
 	TArray<FPrimaryAssetId> AssetIds;
 	AssetManager.GetPrimaryAssetIdList(ItemDefineDataAssetType, AssetIds);
 
 	for (const FPrimaryAssetId& Id : AssetIds)
 	{
-		UObject* Obj = AssetManager.GetPrimaryAssetObject(Id);
-		if (!Obj)
-		{
-			Obj = AssetManager.LoadPrimaryAsset(Id)->GetLoadedAsset();
-		}
+		AssetManager.LoadPrimaryAsset(
+		                              Id,
+		                              {},
+		                              FStreamableDelegate::CreateLambda(
+		                                                                [Id, this]()
+		                                                                {
+			                                                                UObject* Obj = UAssetManager::Get().
+				                                                                GetPrimaryAssetObject(Id);
 
-		if (auto Data = Cast<UItemDefine>(Obj))
-		{
-			AllItemDefineMap.Add(Data->ItemTag, Data);
-		}
+			                                                                if (Obj)
+			                                                                {
+				                                                                if (auto Data = Cast<UItemDefine>(Obj))
+				                                                                {
+					                                                                AllItemDefineMap.Add(
+						                                                                 Data->ItemTag,
+						                                                                 Data
+						                                                                );
+				                                                                }
+			                                                                }
+		                                                                }
+		                                                               ));
 	}
+}
+
+TSharedPtr<FBasicProxy> UInventoryComponent::AddProxy(
+	const FGameplayTag& ProxyType,
+	uint8 Num
+	)
+{
+#if UE_EDITOR || UE_CLIENT
+	if (GetOwnerRole() < ROLE_Authority)
+	{
+		AddProxy_Server(ProxyType, Num);
+		return nullptr;
+	}
+#endif
 
 	return nullptr;
 }

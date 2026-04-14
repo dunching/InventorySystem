@@ -15,10 +15,12 @@ class INVENTORYSYSTEM_API AInventoryActor : public AInfo
 {
 	GENERATED_BODY()
 public:
-	static FName ComponentName;
-	
 	AInventoryActor(const FObjectInitializer& ObjectInitializer);
 
+	virtual void BeginPlay() override;
+	
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	
 	TObjectPtr<UInventoryComponent> GetInventoryComponent()const;
 	
 protected:

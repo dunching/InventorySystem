@@ -2,8 +2,6 @@
 
 #include "InventoryComponent.h"
 
-FName AInventoryActor::ComponentName = TEXT("InventoryActor");
-
 AInventoryActor::AInventoryActor(
 	const FObjectInitializer& ObjectInitializer
 	):
@@ -15,6 +13,18 @@ AInventoryActor::AInventoryActor(
 	SetNetUpdateFrequency(1.f);
 	
 	InventoryComponentPtr = CreateDefaultSubobject<UInventoryComponent>(TEXT("InventoryComponent"));
+}
+
+void AInventoryActor::BeginPlay()
+{
+	Super::BeginPlay();
+}
+
+void AInventoryActor::EndPlay(
+	const EEndPlayReason::Type EndPlayReason
+	)
+{
+	Super::EndPlay(EndPlayReason);
 }
 
 TObjectPtr<UInventoryComponent> AInventoryActor::GetInventoryComponent() const
