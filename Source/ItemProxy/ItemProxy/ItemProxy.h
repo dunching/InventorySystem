@@ -9,7 +9,7 @@
 /**
  */
 USTRUCT()
-struct INVENTORYSYSTEM_API FBasicProxy
+struct ITEMPROXY_API FBasicProxy
 {
 	GENERATED_USTRUCT_BODY()
 

@@ -50,6 +50,7 @@ public class Command_InventorySystem : ModuleRules
 				
 				"ItemSystem",
 				"Utils",
+				"InventorySystem",
             }
 			);
 

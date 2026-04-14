@@ -12,7 +12,7 @@
 struct FBasicProxy;
 
 USTRUCT()
-struct INVENTORYSYSTEM_API FProxy_FASI : public FFastArraySerializerItem
+struct ITEMPROXY_API FProxy_FASI : public FFastArraySerializerItem
 {
 	GENERATED_USTRUCT_BODY()
 
@@ -45,7 +45,7 @@ private:
  };
 
 USTRUCT()
-struct INVENTORYSYSTEM_API FProxy_FASI_Container : public FFastArraySerializer
+struct ITEMPROXY_API FProxy_FASI_Container : public FFastArraySerializer
 {
 	GENERATED_USTRUCT_BODY()
 
