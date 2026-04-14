@@ -6,6 +6,8 @@
 
 #include "ItemProxy.generated.h"
 
+class UItemDefine;
+
 /**
  */
 USTRUCT()
@@ -19,6 +21,8 @@ public:
 		class UPackageMap* Map,
 		bool& bOutSuccess
 		);
+	
+	TObjectPtr<UItemDefine> ItemDefine;
 };
 
 template <>

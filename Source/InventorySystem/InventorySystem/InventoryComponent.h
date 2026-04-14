@@ -4,6 +4,8 @@
 
 #include "GameplayTagContainer.h"
 
+#include "ItemProxy_Container.h"
+
 #include "InventoryComponent.generated.h"
 
 struct FBasicProxy;
@@ -21,7 +23,7 @@ class INVENTORYSYSTEM_API UInventoryComponent : public UActorComponent
 public:
 	virtual void BeginPlay() override;
 	
-	TSharedPtr<FBasicProxy> AddProxy(
+	TWeakPtr<FBasicProxy> AddProxy(
 		const FGameplayTag& ProxyType,
 		uint8 Num
 		);
@@ -35,7 +37,9 @@ public:
 #endif
 
 	UPROPERTY(Transient)
-	TMap<FGameplayTag, UItemDefine*> AllItemDefineMap;
+	TMap<FGameplayTag, TObjectPtr<UItemDefine>> AllItemDefineMap;
 	
+	TArray<TSharedPtr<FBasicProxy>> ProxysAry;
 	
+	FProxy_FASI_Container Proxy_FASI_Container;
 };

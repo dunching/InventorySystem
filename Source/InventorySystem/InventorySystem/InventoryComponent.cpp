@@ -3,12 +3,13 @@
 #include "Engine/AssetManager.h"
 
 #include "ItemDefine.h"
+#include "ItemProxy.h"
 
 void UInventoryComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	auto & AssetManager = UAssetManager::Get();
+	auto& AssetManager = UAssetManager::Get();
 
 	TArray<FPrimaryAssetId> AssetIds;
 	AssetManager.GetPrimaryAssetIdList(ItemDefineDataAssetType, AssetIds);
@@ -35,11 +36,12 @@ void UInventoryComponent::BeginPlay()
 				                                                                }
 			                                                                }
 		                                                                }
-		                                                               ));
+		                                                               )
+		                             );
 	}
 }
 
-TSharedPtr<FBasicProxy> UInventoryComponent::AddProxy(
+TWeakPtr<FBasicProxy> UInventoryComponent::AddProxy(
 	const FGameplayTag& ProxyType,
 	uint8 Num
 	)
@@ -52,8 +54,28 @@ TSharedPtr<FBasicProxy> UInventoryComponent::AddProxy(
 	}
 #endif
 
-	
-	
+	if (auto ItemDefinePtr = AllItemDefineMap.Find(ProxyType))
+	{
+		if ((*ItemDefinePtr)->StatckCount > 1)
+		{
+			for (auto& Iter : ProxysAry)
+			{
+				if (Iter->ItemDefine->ItemTag.MatchesTag(ProxyType))
+				{
+					return Iter;
+				}
+			}
+		}
+		else
+		{
+			auto ItemProxySPtr = MakeShared<FBasicProxy>();
+			
+			ItemProxySPtr->ItemDefine = *ItemDefinePtr;
+			
+			ProxysAry.Add(ItemProxySPtr);
+		}
+	}
+
 	return nullptr;
 }
 

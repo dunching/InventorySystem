@@ -41,6 +41,8 @@ public class InventorySystem : ModuleRules
 				"Engine",
 				"GameplayTags",
 				"Json",
+				
+				"ItemProxy",
             }
 			);
 

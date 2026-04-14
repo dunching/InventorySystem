@@ -6,34 +6,36 @@ using UnrealBuildTool;
 public class ItemProxy : ModuleRules
 {
 	public ItemProxy(ReadOnlyTargetRules Target) : base(Target)
-    {
-	    // Include What You Use (IWYU)
-	    bUseUnity = false;
-	    PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+	{
+		// Include What You Use (IWYU)
+		bUseUnity = false;
+		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-        DefaultBuildSettings = BuildSettingsVersion.Latest;
+		DefaultBuildSettings = BuildSettingsVersion.Latest;
 
-        CppStandard = CppStandardVersion.Cpp20;
+		CppStandard = CppStandardVersion.Cpp20;
 
-        bUseRTTI = false;
+		bUseRTTI = false;
 
-        PublicIncludePaths.AddRange(
-			new string[] {
-                   Path.Combine(ModuleDirectory, "ItemProxy"),
-            }
-			);
-				
+		PublicIncludePaths.AddRange(
+			new string[]
+			{
+				Path.Combine(ModuleDirectory, "ItemProxy"),
+			}
+		);
+
 		PrivateIncludePaths.AddRange(
-			new string[] {
-            }
-			);
+			new string[]
+			{
+			}
+		);
 
-        if (Target.bBuildEditor == true)
-        {
-	        PrivateDependencyModuleNames.Add("UnrealEd");
-        }
+		if (Target.bBuildEditor == true)
+		{
+			PrivateDependencyModuleNames.Add("UnrealEd");
+		}
 
-        PublicDependencyModuleNames.AddRange(
+		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
 				"Core",
@@ -41,23 +43,23 @@ public class ItemProxy : ModuleRules
 				"Engine",
 				"GameplayTags",
 				"Json",
-            }
-			);
+			}
+		);
 
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"NetCore", 
-				
+				"NetCore",
+
 				"ItemSystem",
 				"Utils",
-            }
-			);
+			}
+		);
 
-        DynamicallyLoadedModuleNames.AddRange(
+		DynamicallyLoadedModuleNames.AddRange(
 			new string[]
-            {
-            }
-			);
+			{
+			}
+		);
 	}
 }
