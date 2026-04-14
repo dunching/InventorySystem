@@ -20,8 +20,6 @@ public class InventorySystem : ModuleRules
         PublicIncludePaths.AddRange(
 			new string[] {
                    Path.Combine(ModuleDirectory, "InventorySystem"),
-                   Path.Combine(ModuleDirectory, "ItemProxy"),
-                   Path.Combine(ModuleDirectory, "Command_InventorySystem"),
             }
 			);
 				

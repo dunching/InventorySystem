@@ -21,7 +21,7 @@ void UInventoryComponent::BeginPlay()
 		                              FStreamableDelegate::CreateLambda(
 		                                                                [Id, this]()
 		                                                                {
-			                                                                UObject* Obj = UAssetManager::Get().
+			                                                                auto Obj = UAssetManager::Get().
 				                                                                GetPrimaryAssetObject(Id);
 
 			                                                                if (Obj)
@@ -52,6 +52,8 @@ TSharedPtr<FBasicProxy> UInventoryComponent::AddProxy(
 	}
 #endif
 
+	
+	
 	return nullptr;
 }
 

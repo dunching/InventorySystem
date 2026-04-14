@@ -36,4 +36,6 @@ public:
 
 	UPROPERTY(Transient)
 	TMap<FGameplayTag, UItemDefine*> AllItemDefineMap;
+	
+	
 };
