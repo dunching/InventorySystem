@@ -1,0 +1,19 @@
+{
+	"FileVersion": 1,
+	"Version": 1,
+	"VersionName": "1",
+	"FriendlyName": "InventorySystem",
+	"Category": "Other",
+	"CreatedBy": "武侯笑笑生",	
+	"CanContainContent": true,
+	"Modules": [
+		{
+			"Name": "InventorySystem",
+			"Type": "Runtime",
+			"LoadingPhase": "PreLoadingScreen",
+			"WhitelistPlatforms": [
+				"Win64"
+			]
+		}
+	]
+}
