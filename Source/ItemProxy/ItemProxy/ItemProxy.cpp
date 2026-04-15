@@ -10,22 +10,45 @@ bool FBasicProxy::NetSerialize(
 	bool& bOutSuccess
 	)
 {
+	// 库存条目的核心状态。
+	Ar << ProxyId;
+	Ar << ItemTag;
+	Ar << Count;
+
+	int32 ValueNum = ValuesMap.Num();
+	Ar << ValueNum;
+
 	if (Ar.IsLoading())
 	{
-		auto Num = ValuesMap.Num();
-		Ar << Num;
-
-		for (auto Iter : ValuesMap)
+		// 反序列化时重建键值数据。
+		ValuesMap.Empty(ValueNum);
+		for (int32 Index = 0; Index < ValueNum; ++Index)
 		{
-			Ar << Iter;
+			FGameplayTag Tag;
+			float Value = 0.f;
+			Ar << Tag;
+			Ar << Value;
+			ValuesMap.Add(Tag, Value);
 		}
 	}
 	else
 	{
-		auto Num = ValuesMap.Num();
-		Ar << Num;
-		
+		// 序列化时写出所有键值对。
+		for (const TPair<FGameplayTag, float>& Iter : ValuesMap)
+		{
+			FGameplayTag Tag = Iter.Key;
+			float Value = Iter.Value;
+			Ar << Tag;
+			Ar << Value;
+		}
 	}
+
+	if (!ProxyId.IsValid())
+	{
+		ProxyId = FGuid::NewGuid();
+	}
+	Count = FMath::Max(1, Count);
+
 	bOutSuccess = true;
 	return true;
 }

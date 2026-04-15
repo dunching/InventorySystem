@@ -25,10 +25,19 @@ public:
 		class UPackageMap* Map,
 		bool& bOutSuccess
 		);
+
+	// FastArray 增删改时使用的稳定运行时 ID。
+	FGuid ProxyId = FGuid::NewGuid();
+
+	// 道具类型标签，用于查询与堆叠。
+	FGameplayTag ItemTag;
+
+	// 当前条目的数量。
+	int32 Count = 1;
 	
 	TObjectPtr<UItemDefine> ItemDefine;
 	
-	TMap<FGameplayTag, float>ValuesMap;
+	TMap<FGameplayTag, float> ValuesMap;
 };
 
 template <>

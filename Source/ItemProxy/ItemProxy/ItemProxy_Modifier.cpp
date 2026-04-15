@@ -8,8 +8,7 @@ bool FItemProxy_Modifier::NetSerialize(
 	bool& bOutSuccess
 	)
 {
-	bOutSuccess = true;
-	return true;
+	return FBasicProxy::NetSerialize(Ar, Map, bOutSuccess);
 }
 
 FGameplayTag FProxy_ModifierStrategy::GetTag() const

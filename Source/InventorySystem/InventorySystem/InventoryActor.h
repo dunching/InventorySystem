@@ -8,7 +8,8 @@
 class UInventoryComponent;
 
 /**
- *
+ * 复制用库存承载 Actor。
+ * 将库存组件从 Pawn/Controller 生命周期中解耦。
  */
 UCLASS()
 class INVENTORYSYSTEM_API AInventoryActor : public AInfo
@@ -41,6 +42,7 @@ class INVENTORYSYSTEM_API IGetInventoryInterface
 	GENERATED_BODY()
 
 public:
+	// 供玩法逻辑与控制台命令访问库存入口。
 	virtual AInventoryActor* GetInventory() const= 0;
 
 protected:

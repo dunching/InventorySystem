@@ -7,6 +7,7 @@ AInventoryActor::AInventoryActor(
 	):
 	Super(ObjectInitializer)
 {
+	// 库存对玩法关键，默认始终复制到客户端。
 	bReplicates = true;
 	bAlwaysRelevant = true;
 	SetReplicatingMovement(false);

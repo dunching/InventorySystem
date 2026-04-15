@@ -9,12 +9,16 @@
 #include "InventoryComponent.generated.h"
 
 class UItemDefine;
+class FLifetimeProperty;
 
 struct FBasicProxy;
 struct FProxyStrategy;
 
 /**
- *
+ * 库存组件：
+ * - 维护运行时代理条目
+ * - 通过 ItemTag 解析道具数据资产
+ * - 基于 FastArray 复制库存变更
  */
 UCLASS()
 class INVENTORYSYSTEM_API UInventoryComponent : public UActorComponent
@@ -22,31 +26,74 @@ class INVENTORYSYSTEM_API UInventoryComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:
+	UInventoryComponent();
+
 	virtual void BeginPlay() override;
+
+	virtual void GetLifetimeReplicatedProps(
+		TArray<FLifetimeProperty>& OutLifetimeProps
+		) const override;
 
 	TWeakPtr<FBasicProxy> AddProxy(
 		const FGameplayTag& ProxyType,
 		uint8 Num
 		);
 
+	// 在权威端移除数量；客户端会通过 RPC 转发请求。
+	bool RemoveProxy(
+		const FGameplayTag& ProxyType,
+		uint8 Num
+		);
+
+	int32 GetProxyCount(
+		const FGameplayTag& ProxyType
+		) const;
+
+	const TArray<TSharedPtr<FBasicProxy>>& GetAllProxyList() const;
+
 	void AddGetProxyMetaStrategy(
 		const TSharedPtr<FProxyStrategy>& ProxyMetaStrategyFunc
 		);
 
-#if WITH_EDITORONLY_DATA || UE_CLIENT
 	UFUNCTION(Server, Reliable)
 	void AddProxy_Server(
 		const FGameplayTag& ProxyType,
 		uint8 Num
 		);
-#endif
 
+	UFUNCTION(Server, Reliable)
+	void RemoveProxy_Server(
+		const FGameplayTag& ProxyType,
+		uint8 Num
+		);
+
+protected:
+	UFUNCTION()
+	void OnRep_ProxyContainer();
+
+	TSharedPtr<FProxyStrategy> FindProxyMetaStrategy(
+		const FGameplayTag& ProxyType
+		) const;
+
+	TSharedPtr<FBasicProxy> CreateProxyInstance(
+		const UItemDefine* ItemDefine
+		) const;
+
+	void SyncProxyDefine(
+		const TSharedPtr<FBasicProxy>& ProxySPtr
+		);
+
+	void RefreshProxyCacheFromContainer();
+
+protected:
 	TMap<FGameplayTag, TSharedPtr<FProxyStrategy>> GetProxyMetaStrategies;
 
 	UPROPERTY(Transient)
 	TMap<FGameplayTag, TObjectPtr<UItemDefine>> AllItemDefineMap;
 
+	// Runtime cache, not reflected: UHT does not support TSharedPtr properties.
 	TArray<TSharedPtr<FBasicProxy>> ProxysAry;
 
+	UPROPERTY(ReplicatedUsing = OnRep_ProxyContainer)
 	FProxy_FASI_Container Proxy_FASI_Container;
 };

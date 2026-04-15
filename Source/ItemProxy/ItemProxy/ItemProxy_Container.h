@@ -63,6 +63,7 @@ struct ITEMPROXY_API FProxy_FASI_Container : public FFastArraySerializer
 	using FContainerType = FProxy_FASI_Container;
 
 	UPROPERTY()
+	// FastArray 复制载荷。
 	TArray<FProxy_FASI> Items;
 
 	bool NetDeltaSerialize(
@@ -88,7 +89,7 @@ struct ITEMPROXY_API FProxy_FASI_Container : public FFastArraySerializer
 		);
 
 	void UpdateItem(
-		const FGuid& Proxy_ID
+		const FGuid& ProxyId
 		);
 
 	void UpdateItem(
