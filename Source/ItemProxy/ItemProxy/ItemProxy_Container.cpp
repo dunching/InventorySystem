@@ -7,6 +7,9 @@ void FProxy_FASI::PostReplicatedAdd(
 	)
 {
 	// 客户端新增条目时的扩展钩子（可用于 UI 绑定）。
+	// ProxySPtr = MakeShared<>();
+	
+	InArraySerializer.OnAdd.Broadcast(ProxySPtr);
 }
 
 void FProxy_FASI::PostReplicatedChange(

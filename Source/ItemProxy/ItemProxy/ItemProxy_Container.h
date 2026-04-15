@@ -39,9 +39,6 @@ struct ITEMPROXY_API FProxy_FASI : public FFastArraySerializerItem
 		) const;
 
 	TSharedPtr<FBasicProxy> ProxySPtr = nullptr;
-
-private:
-	TSharedPtr<FBasicProxy> CacheProxySPtr = nullptr;
 };
 
 template <>
@@ -60,7 +57,12 @@ struct ITEMPROXY_API FProxy_FASI_Container : public FFastArraySerializer
 	GENERATED_USTRUCT_BODY()
 
 	using FItemType = FProxy_FASI;
+
 	using FContainerType = FProxy_FASI_Container;
+
+	using FOnChanged = TMulticastDelegate<void(
+		const TSharedPtr<FBasicProxy>&
+		)>;
 
 	UPROPERTY()
 	// FastArray 复制载荷。
@@ -99,6 +101,8 @@ struct ITEMPROXY_API FProxy_FASI_Container : public FFastArraySerializer
 	void RemoveItem(
 		const TSharedPtr<FBasicProxy>& ProxySPtr
 		);
+
+	FOnChanged OnAdd;
 };
 
 template <>
