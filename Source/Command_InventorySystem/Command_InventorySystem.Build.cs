@@ -17,10 +17,9 @@ public class Command_InventorySystem : ModuleRules
 
         bUseRTTI = false;
 
-        PublicIncludePaths.AddRange(
-			new string[] {
-            }
-			);
+        // 递归公开模块内所有头文件目录，跨模块可直接 #include "Xxx.h"。
+        PublicIncludePaths.Add(ModuleDirectory);
+        PublicIncludePaths.AddRange(Directory.GetDirectories(ModuleDirectory, "*", SearchOption.AllDirectories));
 				
 		PrivateIncludePaths.AddRange(
 			new string[] {

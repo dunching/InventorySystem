@@ -8,6 +8,7 @@ bool FItemProxy_Equipment::NetSerialize(
 	bool& bOutSuccess
 	)
 {
+	// 装备 Proxy 目前沿用基础序列化逻辑。
 	return FBasicProxy::NetSerialize(Ar, Map, bOutSuccess);
 }
 

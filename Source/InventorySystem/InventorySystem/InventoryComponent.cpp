@@ -7,6 +7,7 @@
 #include "ItemProxy.h"
 #include "ItemProxy_Equipment.h"
 #include "ItemProxy_Modifier.h"
+#include "ItemProxy_State.h"
 
 UInventoryComponent::UInventoryComponent()
 {
@@ -17,8 +18,18 @@ void UInventoryComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	auto& AssetManager = UAssetManager::Get();
+	// 绑定 FastArray 增量回调：
+	// - 服务端改容器
+	// - 客户端靠回调增量更新 ProxysAry
+	Proxy_FASI_Container.OnAdd.RemoveAll(this);
+	Proxy_FASI_Container.OnChange.RemoveAll(this);
+	Proxy_FASI_Container.OnRemove.RemoveAll(this);
+	Proxy_FASI_Container.OnAdd.AddUObject(this, &ThisClass::HandleProxyAdded);
+	Proxy_FASI_Container.OnChange.AddUObject(this, &ThisClass::HandleProxyChanged);
+	Proxy_FASI_Container.OnRemove.AddUObject(this, &ThisClass::HandleProxyRemoved);
 
+	// 预加载 ItemDefine 原型数据（后续用于 ItemTag -> Define 映射）。
+	auto& AssetManager = UAssetManager::Get();
 	TArray<FPrimaryAssetId> AssetIds;
 	AssetManager.GetPrimaryAssetIdList(ItemDefineDataAssetType, AssetIds);
 
@@ -35,6 +46,8 @@ void UInventoryComponent::BeginPlay()
 						if (UItemDefine* Data = Cast<UItemDefine>(Obj))
 						{
 							AllItemDefineMap.Add(Data->ItemTag, Data);
+
+							// Define 迟加载完成后，补齐已存在 Proxy 的 ItemDefine 指针。
 							for (const TSharedPtr<FBasicProxy>& ProxySPtr : ProxysAry)
 							{
 								SyncProxyDefine(ProxySPtr);
@@ -46,8 +59,10 @@ void UInventoryComponent::BeginPlay()
 		);
 	}
 
+	// 注册默认策略：装备类、强化类。
 	AddGetProxyMetaStrategy(MakeShared<FProxy_EquipmentStrategy>());
 	AddGetProxyMetaStrategy(MakeShared<FProxy_ModifierStrategy>());
+	AddGetProxyMetaStrategy(MakeShared<FProxy_StateStrategy>());
 }
 
 void UInventoryComponent::GetLifetimeReplicatedProps(
@@ -63,7 +78,7 @@ TWeakPtr<FBasicProxy> UInventoryComponent::AddProxy(
 	uint8 Num
 	)
 {
-	// 库存修改遵循服务器权威。
+	// 库存改动由服务端权威执行，客户端仅发请求。
 	if (!GetOwner() || !GetOwner()->HasAuthority())
 	{
 		AddProxy_Server(ProxyType, Num);
@@ -89,7 +104,7 @@ TWeakPtr<FBasicProxy> UInventoryComponent::AddProxy(
 
 		if (StackLimit > 1)
 		{
-			// 先填满已有堆叠，减少条目数量。
+			// 先填已有堆叠，降低条目数量和复制开销。
 			for (const TSharedPtr<FBasicProxy>& Iter : ProxysAry)
 			{
 				if (!Iter.IsValid() || !Iter->ItemTag.MatchesTagExact(ProxyType) || Iter->Count >= StackLimit)
@@ -105,7 +120,7 @@ TWeakPtr<FBasicProxy> UInventoryComponent::AddProxy(
 
 				Iter->Count += CanAdd;
 				PendingNum -= CanAdd;
-				Proxy_FASI_Container.UpdateItem(Iter);
+				Proxy_FASI_Container.UpdateItem(Iter); // 标记变更复制
 
 				if (!FirstChangedProxy.IsValid())
 				{
@@ -118,9 +133,9 @@ TWeakPtr<FBasicProxy> UInventoryComponent::AddProxy(
 				}
 			}
 
+			// 余量拆新堆叠。
 			while (PendingNum > 0)
 			{
-				// 剩余数量拆分为新堆叠。
 				const int32 NewCount = FMath::Min(StackLimit, PendingNum);
 				TSharedPtr<FBasicProxy> ItemProxySPtr = CreateProxyInstance(ItemDefine);
 				if (!ItemProxySPtr.IsValid())
@@ -130,7 +145,7 @@ TWeakPtr<FBasicProxy> UInventoryComponent::AddProxy(
 
 				ItemProxySPtr->Count = NewCount;
 				ProxysAry.Add(ItemProxySPtr);
-				Proxy_FASI_Container.AddItem(ItemProxySPtr);
+				Proxy_FASI_Container.AddItem(ItemProxySPtr); // 标记新增复制
 
 				if (!FirstChangedProxy.IsValid())
 				{
@@ -143,6 +158,7 @@ TWeakPtr<FBasicProxy> UInventoryComponent::AddProxy(
 			return FirstChangedProxy;
 		}
 
+		// 不可堆叠：逐个创建条目。
 		for (int32 Index = 0; Index < PendingNum; ++Index)
 		{
 			TSharedPtr<FBasicProxy> ItemProxySPtr = CreateProxyInstance(ItemDefine);
@@ -171,7 +187,7 @@ bool UInventoryComponent::RemoveProxy(
 	uint8 Num
 	)
 {
-	// 库存修改遵循服务器权威。
+	// 库存改动由服务端权威执行，客户端仅发请求。
 	if (!GetOwner() || !GetOwner()->HasAuthority())
 	{
 		RemoveProxy_Server(ProxyType, Num);
@@ -192,6 +208,7 @@ bool UInventoryComponent::RemoveProxy(
 			continue;
 		}
 
+		// 当前堆叠够减：仅更新数量并标记变更复制。
 		if (ProxySPtr->Count > PendingNum)
 		{
 			ProxySPtr->Count -= PendingNum;
@@ -200,6 +217,7 @@ bool UInventoryComponent::RemoveProxy(
 			break;
 		}
 
+		// 当前堆叠被清空：删除条目并标记数组变化复制。
 		PendingNum -= ProxySPtr->Count;
 		Proxy_FASI_Container.RemoveItem(ProxySPtr);
 		ProxysAry.RemoveAt(Index);
@@ -262,19 +280,83 @@ void UInventoryComponent::RemoveProxy_Server_Implementation(
 
 void UInventoryComponent::OnRep_ProxyContainer()
 {
-	// 客户端收到 FastArray 后重建本地缓存。
+	// 兜底同步：保证本地缓存与容器一致（防增量回调漏处理）。
 	RefreshProxyCacheFromContainer();
+}
+
+void UInventoryComponent::HandleProxyAdded(
+	const TSharedPtr<FBasicProxy>& ProxySPtr
+	)
+{
+	if (!ProxySPtr.IsValid())
+	{
+		return;
+	}
+
+	SyncProxyDefine(ProxySPtr);
+
+	// 去重：同 ProxyId 不重复加入缓存。
+	for (const TSharedPtr<FBasicProxy>& Iter : ProxysAry)
+	{
+		if (Iter.IsValid() && Iter->ProxyId == ProxySPtr->ProxyId)
+		{
+			return;
+		}
+	}
+
+	ProxysAry.Add(ProxySPtr);
+}
+
+void UInventoryComponent::HandleProxyChanged(
+	const TSharedPtr<FBasicProxy>& ProxySPtr
+	)
+{
+	if (!ProxySPtr.IsValid())
+	{
+		return;
+	}
+
+	SyncProxyDefine(ProxySPtr);
+
+	for (TSharedPtr<FBasicProxy>& Iter : ProxysAry)
+	{
+		if (Iter.IsValid() && Iter->ProxyId == ProxySPtr->ProxyId)
+		{
+			Iter = ProxySPtr;
+			return;
+		}
+	}
+
+	// 容错：若本地未命中，按新增处理，避免状态丢失。
+	ProxysAry.Add(ProxySPtr);
+}
+
+void UInventoryComponent::HandleProxyRemoved(
+	const TSharedPtr<FBasicProxy>& ProxySPtr
+	)
+{
+	if (!ProxySPtr.IsValid())
+	{
+		return;
+	}
+
+	ProxysAry.RemoveAll([&ProxySPtr](const TSharedPtr<FBasicProxy>& Iter)
+	{
+		return Iter.IsValid() && Iter->ProxyId == ProxySPtr->ProxyId;
+	});
 }
 
 TSharedPtr<FProxyStrategy> UInventoryComponent::FindProxyMetaStrategy(
 	const FGameplayTag& ProxyType
 	) const
 {
+	// 优先精确匹配。
 	if (const TSharedPtr<FProxyStrategy>* Iter = GetProxyMetaStrategies.Find(ProxyType))
 	{
 		return *Iter;
 	}
 
+	// 其次父标签匹配（允许用更宽泛标签覆盖多个子类道具）。
 	for (const TPair<FGameplayTag, TSharedPtr<FProxyStrategy>>& Iter : GetProxyMetaStrategies)
 	{
 		if (ProxyType.MatchesTag(Iter.Key))
@@ -301,6 +383,7 @@ TSharedPtr<FBasicProxy> UInventoryComponent::CreateProxyInstance(
 		ItemProxySPtr = Strategy->GetProxy();
 	}
 
+	// 无策略时使用基础 Proxy。
 	if (!ItemProxySPtr.IsValid())
 	{
 		ItemProxySPtr = MakeShared<FBasicProxy>();
