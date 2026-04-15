@@ -6,34 +6,28 @@
 
 #include "GameplayTagContainer.h"
 
-#include "ItemProxy.generated.h"
+#include "ItemProxy.h"
 
-class UItemDefine;
+#include "ItemProxy_Modifier.generated.h"
 
 /**
  */
 USTRUCT()
-struct ITEMPROXY_API FBasicProxy
+struct ITEMPROXY_API FItemProxy_Modifier : public FBasicProxy
 {
 	GENERATED_USTRUCT_BODY()
 
 public:
-	virtual ~FBasicProxy();
-	
 	virtual bool NetSerialize(
 		FArchive& Ar,
 		class UPackageMap* Map,
 		bool& bOutSuccess
-		);
-	
-	TObjectPtr<UItemDefine> ItemDefine;
-	
-	TMap<FGameplayTag, float>ValuesMap;
+		) override;
 };
 
 template <>
-struct TStructOpsTypeTraits<FBasicProxy> :
-	public TStructOpsTypeTraitsBase2<FBasicProxy>
+struct TStructOpsTypeTraits<FItemProxy_Modifier> :
+	public TStructOpsTypeTraitsBase2<FItemProxy_Modifier>
 {
 	enum
 	{
@@ -41,9 +35,9 @@ struct TStructOpsTypeTraits<FBasicProxy> :
 	};
 };
 
-struct ITEMPROXY_API FProxyStrategy
+struct ITEMPROXY_API FProxy_ModifierStrategy : public FProxyStrategy
 {
-	virtual FGameplayTag GetTag()const;
+	virtual FGameplayTag GetTag()const override;
 	
 	virtual TSharedPtr<FBasicProxy> GetProxy()const;
 };

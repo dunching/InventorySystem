@@ -16,33 +16,43 @@ struct ITEMPROXY_API FProxy_FASI : public FFastArraySerializerItem
 {
 	GENERATED_USTRUCT_BODY()
 
-	void PreReplicatedRemove(const FProxy_FASI_Container& InArraySerializer);
+	void PreReplicatedRemove(
+		const FProxy_FASI_Container& InArraySerializer
+		);
 
-	void PostReplicatedAdd(const FProxy_FASI_Container& InArraySerializer);
+	void PostReplicatedAdd(
+		const FProxy_FASI_Container& InArraySerializer
+		);
 
-	void PostReplicatedChange(const FProxy_FASI_Container& InArraySerializer);
+	void PostReplicatedChange(
+		const FProxy_FASI_Container& InArraySerializer
+		);
 
-	bool NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess);
+	bool NetSerialize(
+		FArchive& Ar,
+		class UPackageMap* Map,
+		bool& bOutSuccess
+		);
 
-	bool operator==(const FProxy_FASI& Right)const;
+	bool operator==(
+		const FProxy_FASI& Right
+		) const;
 
 	TSharedPtr<FBasicProxy> ProxySPtr = nullptr;
 
 private:
-	
 	TSharedPtr<FBasicProxy> CacheProxySPtr = nullptr;
-
 };
 
- template<>
- struct TStructOpsTypeTraits< FProxy_FASI > :
- 	public TStructOpsTypeTraitsBase2< FProxy_FASI >
- {
- 	enum
- 	{
+template <>
+struct TStructOpsTypeTraits<FProxy_FASI> :
+	public TStructOpsTypeTraitsBase2<FProxy_FASI>
+{
+	enum
+	{
 		WithNetSerializer = true,
- 	};
- };
+	};
+};
 
 USTRUCT()
 struct ITEMPROXY_API FProxy_FASI_Container : public FFastArraySerializer
@@ -55,10 +65,15 @@ struct ITEMPROXY_API FProxy_FASI_Container : public FFastArraySerializer
 	UPROPERTY()
 	TArray<FProxy_FASI> Items;
 
-	bool NetDeltaSerialize(FNetDeltaSerializeInfo& DeltaParms);
+	bool NetDeltaSerialize(
+		FNetDeltaSerializeInfo& DeltaParms
+		);
 
-	template< typename Type, typename SerializerType >
-	bool ShouldWriteFastArrayItem(const Type& Item, const bool bIsWritingOnClient)
+	template <typename Type, typename SerializerType>
+	bool ShouldWriteFastArrayItem(
+		const Type& Item,
+		const bool bIsWritingOnClient
+		)
 	{
 		if (bIsWritingOnClient)
 		{
@@ -68,19 +83,26 @@ struct ITEMPROXY_API FProxy_FASI_Container : public FFastArraySerializer
 		return true;
 	}
 
-	void AddItem(const TSharedPtr<FBasicProxy>& ProxySPtr);
+	void AddItem(
+		const TSharedPtr<FBasicProxy>& ProxySPtr
+		);
 
-	void UpdateItem(const FGuid& Proxy_ID);
+	void UpdateItem(
+		const FGuid& Proxy_ID
+		);
 
-	void UpdateItem(const TSharedPtr<FBasicProxy>& ProxySPtr);
+	void UpdateItem(
+		const TSharedPtr<FBasicProxy>& ProxySPtr
+		);
 
-	void RemoveItem(const TSharedPtr<FBasicProxy>& ProxySPtr);
-
+	void RemoveItem(
+		const TSharedPtr<FBasicProxy>& ProxySPtr
+		);
 };
 
-template<>
-struct TStructOpsTypeTraits< FProxy_FASI_Container > :
-	public TStructOpsTypeTraitsBase2< FProxy_FASI_Container >
+template <>
+struct TStructOpsTypeTraits<FProxy_FASI_Container> :
+	public TStructOpsTypeTraitsBase2<FProxy_FASI_Container>
 {
 	enum
 	{

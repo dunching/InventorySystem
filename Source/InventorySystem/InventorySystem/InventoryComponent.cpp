@@ -4,6 +4,8 @@
 
 #include "ItemDefine.h"
 #include "ItemProxy.h"
+#include "ItemProxy_Equipment.h"
+#include "ItemProxy_Modifier.h"
 
 void UInventoryComponent::BeginPlay()
 {
@@ -39,6 +41,9 @@ void UInventoryComponent::BeginPlay()
 		                                                               )
 		                             );
 	}
+
+	AddGetProxyMetaStrategy(MakeShared<FProxy_EquipmentStrategy>());
+	AddGetProxyMetaStrategy(MakeShared<FProxy_ModifierStrategy>());
 }
 
 TWeakPtr<FBasicProxy> UInventoryComponent::AddProxy(
@@ -68,15 +73,30 @@ TWeakPtr<FBasicProxy> UInventoryComponent::AddProxy(
 		}
 		else
 		{
-			auto ItemProxySPtr = MakeShared<FBasicProxy>();
-			
+			TSharedPtr<FBasicProxy> ItemProxySPtr = nullptr;
+			if (auto Iter = GetProxyMetaStrategies.Find(ProxyType))
+			{
+				ItemProxySPtr = (*Iter)->GetProxy();
+			}
+			else
+			{
+				ItemProxySPtr = MakeShared<FBasicProxy>();
+			}
+
 			ItemProxySPtr->ItemDefine = *ItemDefinePtr;
-			
+
 			ProxysAry.Add(ItemProxySPtr);
 		}
 	}
 
 	return nullptr;
+}
+
+void UInventoryComponent::AddGetProxyMetaStrategy(
+	const TSharedPtr<FProxyStrategy>& ProxyMetaStrategyFunc
+	)
+{
+	GetProxyMetaStrategies.Add(ProxyMetaStrategyFunc->GetTag(), ProxyMetaStrategyFunc);
 }
 
 #if WITH_EDITORONLY_DATA || UE_CLIENT

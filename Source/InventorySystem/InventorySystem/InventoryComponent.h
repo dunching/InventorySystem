@@ -8,9 +8,10 @@
 
 #include "InventoryComponent.generated.h"
 
-struct FBasicProxy;
-
 class UItemDefine;
+
+struct FBasicProxy;
+struct FProxyStrategy;
 
 /**
  *
@@ -22,10 +23,14 @@ class INVENTORYSYSTEM_API UInventoryComponent : public UActorComponent
 
 public:
 	virtual void BeginPlay() override;
-	
+
 	TWeakPtr<FBasicProxy> AddProxy(
 		const FGameplayTag& ProxyType,
 		uint8 Num
+		);
+
+	void AddGetProxyMetaStrategy(
+		const TSharedPtr<FProxyStrategy>& ProxyMetaStrategyFunc
 		);
 
 #if WITH_EDITORONLY_DATA || UE_CLIENT
@@ -36,10 +41,12 @@ public:
 		);
 #endif
 
+	TMap<FGameplayTag, TSharedPtr<FProxyStrategy>> GetProxyMetaStrategies;
+
 	UPROPERTY(Transient)
 	TMap<FGameplayTag, TObjectPtr<UItemDefine>> AllItemDefineMap;
-	
+
 	TArray<TSharedPtr<FBasicProxy>> ProxysAry;
-	
+
 	FProxy_FASI_Container Proxy_FASI_Container;
 };
