@@ -1,16 +1,16 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
-
 #include "GameplayTagContainer.h"
 
 #include "ItemProxy.h"
-
 #include "ItemProxy_Equipment.generated.h"
 
 /**
+ * 装备实例 Proxy：
+ * - 当前不追加专属字段
+ * - 复用 FBasicProxy 的基础复制能力（ProxyId/ItemTag/Count/ValuesMap）
+ * - 后续可在此扩展“耐久、品阶、词条”等装备专有属性
  */
 USTRUCT()
 struct ITEMPROXY_API FItemProxy_Equipment : public FBasicProxy
@@ -26,8 +26,7 @@ public:
 };
 
 template <>
-struct TStructOpsTypeTraits<FItemProxy_Equipment> :
-	public TStructOpsTypeTraitsBase2<FItemProxy_Equipment>
+struct TStructOpsTypeTraits<FItemProxy_Equipment> : public TStructOpsTypeTraitsBase2<FItemProxy_Equipment>
 {
 	enum
 	{
@@ -35,11 +34,13 @@ struct TStructOpsTypeTraits<FItemProxy_Equipment> :
 	};
 };
 
+/**
+ * 装备 Proxy 构造策略：
+ * - ItemTag 命中装备标签时，创建 FItemProxy_Equipment
+ */
 struct ITEMPROXY_API FProxy_EquipmentStrategy : public FProxyStrategy
 {
-	virtual FGameplayTag GetTag()const override;
-	
-	virtual TSharedPtr<FBasicProxy> GetProxy()const;
+	virtual FGameplayTag GetTag() const override;
+
+	virtual TSharedPtr<FBasicProxy> GetProxy() const override;
 };
-
-

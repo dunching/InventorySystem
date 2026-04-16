@@ -8,6 +8,7 @@ bool FItemProxy_Modifier::NetSerialize(
 	bool& bOutSuccess
 	)
 {
+	// 强化 Proxy 目前沿用基础序列化逻辑。
 	return FBasicProxy::NetSerialize(Ar, Map, bOutSuccess);
 }
 
