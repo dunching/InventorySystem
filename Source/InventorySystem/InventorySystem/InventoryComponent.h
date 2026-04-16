@@ -91,6 +91,9 @@ protected:
 	UPROPERTY(Transient)
 	TMap<FGameplayTag, TObjectPtr<UItemDefine>> AllItemDefineMap;
 
+	// 当 ItemDefine 仍在异步加载时，服务端先缓存新增请求，待资源可用后回放。
+	TMap<FGameplayTag, int32> PendingAddRequests;
+
 	// Runtime cache, not reflected: UHT does not support TSharedPtr properties.
 	TArray<TSharedPtr<FBasicProxy>> ProxysAry;
 

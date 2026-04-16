@@ -45,7 +45,6 @@ bool FProxy_FASI::NetSerialize(
 
 	if (Ar.IsLoading())
 	{
-		CacheProxySPtr = ProxySPtr;
 	}
 
 	bOutSuccess = true;

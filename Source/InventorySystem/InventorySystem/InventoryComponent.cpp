@@ -39,6 +39,21 @@ void UInventoryComponent::BeginPlay()
 							{
 								SyncProxyDefine(ProxySPtr);
 							}
+
+							// 服务端在定义到位后回放排队的 Add 请求，避免早期调用丢失。
+							if (GetOwner() && GetOwner()->HasAuthority())
+							{
+								int32 PendingCount = 0;
+								if (PendingAddRequests.RemoveAndCopyValue(Data->ItemTag, PendingCount) && PendingCount > 0)
+								{
+									while (PendingCount > 0)
+									{
+										const int32 BatchNum = FMath::Min(PendingCount, static_cast<int32>(TNumericLimits<uint8>::Max()));
+										AddProxy(Data->ItemTag, static_cast<uint8>(BatchNum));
+										PendingCount -= BatchNum;
+									}
+								}
+							}
 						}
 					}
 				}
@@ -162,6 +177,10 @@ TWeakPtr<FBasicProxy> UInventoryComponent::AddProxy(
 
 		return FirstChangedProxy;
 	}
+
+	// ItemDefine 仍未完成异步加载时，先记录请求并等待回放。
+	int32& PendingCount = PendingAddRequests.FindOrAdd(ProxyType);
+	PendingCount += Num;
 
 	return nullptr;
 }
