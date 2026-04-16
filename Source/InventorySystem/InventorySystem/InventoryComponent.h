@@ -70,6 +70,17 @@ public:
 protected:
 	UFUNCTION()
 	void OnRep_ProxyContainer();
+	
+	void HandleProxyAdded(
+		const TSharedPtr<FBasicProxy>& ProxySPtr
+		);
+
+	void HandleProxyChanged(
+		const TSharedPtr<FBasicProxy>& ProxySPtr
+		);
+	void HandleProxyRemoved(
+		const TSharedPtr<FBasicProxy>& ProxySPtr
+		);
 
 	TSharedPtr<FProxyStrategy> FindProxyMetaStrategy(
 		const FGameplayTag& ProxyType
