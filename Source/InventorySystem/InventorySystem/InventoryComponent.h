@@ -51,6 +51,9 @@ public:
 
 	const TArray<TSharedPtr<FBasicProxy>>& GetAllProxyList() const;
 
+	UFUNCTION(BlueprintPure, Category = "Inventory")
+	const UItemDefine* FindItemDefineByTag(const FGameplayTag& ItemTag) const;
+
 	void AddGetProxyMetaStrategy(
 		const TSharedPtr<FProxyStrategy>& ProxyMetaStrategyFunc
 		);

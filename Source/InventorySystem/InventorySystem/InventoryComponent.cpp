@@ -271,6 +271,20 @@ const TArray<TSharedPtr<FBasicProxy>>& UInventoryComponent::GetAllProxyList() co
 	return ProxysAry;
 }
 
+const UItemDefine* UInventoryComponent::FindItemDefineByTag(const FGameplayTag& ItemTag) const
+{
+	if (!ItemTag.IsValid())
+	{
+		return nullptr;
+	}
+
+	if (const TObjectPtr<UItemDefine>* Found = AllItemDefineMap.Find(ItemTag))
+	{
+		return *Found;
+	}
+	return nullptr;
+}
+
 void UInventoryComponent::AddGetProxyMetaStrategy(
 	const TSharedPtr<FProxyStrategy>& ProxyMetaStrategyFunc
 	)
