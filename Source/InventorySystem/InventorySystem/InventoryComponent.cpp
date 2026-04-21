@@ -144,6 +144,7 @@ TWeakPtr<FBasicProxy> UInventoryComponent::AddProxy(
 
 				if (PendingNum <= 0)
 				{
+					NotifyInventoryChanged();
 					return FirstChangedProxy;
 				}
 			}
@@ -170,6 +171,7 @@ TWeakPtr<FBasicProxy> UInventoryComponent::AddProxy(
 				PendingNum -= NewCount;
 			}
 
+			NotifyInventoryChanged();
 			return FirstChangedProxy;
 		}
 
@@ -191,6 +193,7 @@ TWeakPtr<FBasicProxy> UInventoryComponent::AddProxy(
 			}
 		}
 
+		NotifyInventoryChanged();
 		return FirstChangedProxy;
 	}
 
@@ -233,6 +236,7 @@ bool UInventoryComponent::RemoveProxy(
 			ProxySPtr->Count -= PendingNum;
 			Proxy_FASI_Container.UpdateItem(ProxySPtr);
 			PendingNum = 0;
+			NotifyInventoryChanged();
 			break;
 		}
 
@@ -242,7 +246,13 @@ bool UInventoryComponent::RemoveProxy(
 		ProxysAry.RemoveAt(Index);
 	}
 
-	return PendingNum == 0;
+	const bool bFullyRemoved = PendingNum == 0;
+	if (bFullyRemoved)
+	{
+		NotifyInventoryChanged();
+	}
+
+	return bFullyRemoved;
 }
 
 int32 UInventoryComponent::GetProxyCount(
@@ -338,6 +348,7 @@ void UInventoryComponent::HandleProxyAdded(
 	}
 
 	ProxysAry.Add(ProxySPtr);
+	NotifyInventoryChanged();
 }
 
 void UInventoryComponent::HandleProxyChanged(
@@ -356,12 +367,14 @@ void UInventoryComponent::HandleProxyChanged(
 		if (Iter.IsValid() && Iter->ProxyId == ProxySPtr->ProxyId)
 		{
 			Iter = ProxySPtr;
+			NotifyInventoryChanged();
 			return;
 		}
 	}
 
 	// 容错：若本地未命中，按新增处理，避免状态丢失。
 	ProxysAry.Add(ProxySPtr);
+	NotifyInventoryChanged();
 }
 
 void UInventoryComponent::HandleProxyRemoved(
@@ -377,6 +390,7 @@ void UInventoryComponent::HandleProxyRemoved(
 	{
 		return Iter.IsValid() && Iter->ProxyId == ProxySPtr->ProxyId;
 	});
+	NotifyInventoryChanged();
 }
 
 TSharedPtr<FProxyStrategy> UInventoryComponent::FindProxyMetaStrategy(
@@ -461,4 +475,11 @@ void UInventoryComponent::RefreshProxyCacheFromContainer()
 		SyncProxyDefine(Item.ProxySPtr);
 		ProxysAry.Add(Item.ProxySPtr);
 	}
+
+	NotifyInventoryChanged();
+}
+
+void UInventoryComponent::NotifyInventoryChanged()
+{
+	InventoryProxyStateChangedEvent.Broadcast();
 }

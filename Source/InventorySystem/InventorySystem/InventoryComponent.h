@@ -13,6 +13,7 @@ class FLifetimeProperty;
 
 struct FBasicProxy;
 struct FProxyStrategy;
+DECLARE_MULTICAST_DELEGATE(FOnInventoryProxyStateChanged);
 
 /**
  * 库存组件：
@@ -50,6 +51,11 @@ public:
 		) const;
 
 	const TArray<TSharedPtr<FBasicProxy>>& GetAllProxyList() const;
+
+	FOnInventoryProxyStateChanged& OnInventoryProxyStateChanged()
+	{
+		return InventoryProxyStateChangedEvent;
+	}
 
 	UFUNCTION(BlueprintPure, Category = "Inventory")
 	const UItemDefine* FindItemDefineByTag(const FGameplayTag& ItemTag) const;
@@ -98,6 +104,7 @@ protected:
 		);
 
 	void RefreshProxyCacheFromContainer();
+	void NotifyInventoryChanged();
 
 protected:
 	TMap<FGameplayTag, TSharedPtr<FProxyStrategy>> GetProxyMetaStrategies;
@@ -110,6 +117,8 @@ protected:
 
 	// Runtime cache, not reflected: UHT does not support TSharedPtr properties.
 	TArray<TSharedPtr<FBasicProxy>> ProxysAry;
+
+	FOnInventoryProxyStateChanged InventoryProxyStateChangedEvent;
 
 	UPROPERTY(ReplicatedUsing = OnRep_ProxyContainer)
 	FProxy_FASI_Container Proxy_FASI_Container;
