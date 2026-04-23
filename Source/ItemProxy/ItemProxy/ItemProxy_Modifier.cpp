@@ -1,5 +1,5 @@
 ﻿#include "ItemProxy_Modifier.h"
-#include "GameplayTagsLibrary.h"
+#include "ItemSystemTags.h"
 
 bool FItemProxy_Modifier::NetSerialize(
 	FArchive& Ar,
@@ -13,7 +13,7 @@ bool FItemProxy_Modifier::NetSerialize(
 
 FGameplayTag FProxy_ModifierStrategy::GetTag() const
 {
-	return USmartCitySuiteTags::Item_Modifier_Test;
+	return ItemSystemTags::Item_Modifier_Test;
 }
 
 TSharedPtr<FBasicProxy> FProxy_ModifierStrategy::GetProxy() const

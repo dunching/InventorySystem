@@ -1,5 +1,5 @@
 ﻿#include "ItemProxy_State.h"
-#include "GameplayTagsLibrary.h"
+#include "ItemSystemTags.h"
 
 bool FItemProxy_State::NetSerialize(
 	FArchive& Ar,
@@ -60,7 +60,7 @@ bool FItemProxy_State::GetStateBool(
 
 FGameplayTag FProxy_StateStrategy::GetTag() const
 {
-	return USmartCitySuiteTags::Item_State;
+	return ItemSystemTags::Item_State;
 }
 
 TSharedPtr<FBasicProxy> FProxy_StateStrategy::GetProxy() const
