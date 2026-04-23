@@ -1,8 +1,7 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
-
 #include "ItemProxy.h"
 #include "ItemProxy_State.generated.h"
 

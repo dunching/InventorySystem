@@ -1,8 +1,7 @@
-
+﻿
 #pragma once
 
 #include "CoreMinimal.h"
-
 #include "InventoryActor.generated.h"
 
 class UInventoryComponent;

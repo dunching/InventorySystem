@@ -1,5 +1,4 @@
-#include "ItemProxy_State.h"
-
+﻿#include "ItemProxy_State.h"
 #include "GameplayTagsLibrary.h"
 
 bool FItemProxy_State::NetSerialize(

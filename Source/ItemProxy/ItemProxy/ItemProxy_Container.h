@@ -1,9 +1,8 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "GameplayTagContainer.h"
 #include "Net/Serialization/FastArraySerializer.h"
-
+#include "GameplayTagContainer.h"
 #include "ItemProxy_Container.generated.h"
 
 struct FBasicProxy;

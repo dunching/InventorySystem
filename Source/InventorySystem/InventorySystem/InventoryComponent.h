@@ -1,11 +1,8 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
-
 #include "GameplayTagContainer.h"
-
 #include "ItemProxy_Container.h"
-
 #include "InventoryComponent.generated.h"
 
 class UItemDefine;

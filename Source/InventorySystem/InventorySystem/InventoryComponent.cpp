@@ -1,8 +1,6 @@
-#include "InventoryComponent.h"
-
+﻿#include "InventoryComponent.h"
 #include "Engine/AssetManager.h"
 #include "Net/UnrealNetwork.h"
-
 #include "ItemDefine.h"
 #include "ItemProxy.h"
 #include "ItemProxy_Equipment.h"
