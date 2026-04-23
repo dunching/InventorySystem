@@ -27,6 +27,7 @@ public:
 	UInventoryComponent();
 
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 	virtual void GetLifetimeReplicatedProps(
 		TArray<FLifetimeProperty>& OutLifetimeProps
@@ -99,15 +100,14 @@ protected:
 	void SyncProxyDefine(
 		const TSharedPtr<FBasicProxy>& ProxySPtr
 		);
+	void HandleItemDefineLoaded(const FGameplayTag& ItemTag, const UItemDefine* ItemDefine);
+	void ReplayPendingAddRequests(const FGameplayTag& ItemTag);
 
 	void RefreshProxyCacheFromContainer();
 	void NotifyInventoryChanged();
 
 protected:
 	TMap<FGameplayTag, TSharedPtr<FProxyStrategy>> GetProxyMetaStrategies;
-
-	UPROPERTY(Transient)
-	TMap<FGameplayTag, TObjectPtr<UItemDefine>> AllItemDefineMap;
 
 	// 当 ItemDefine 仍在异步加载时，服务端先缓存新增请求，待资源可用后回放。
 	TMap<FGameplayTag, int32> PendingAddRequests;
@@ -116,6 +116,7 @@ protected:
 	TArray<TSharedPtr<FBasicProxy>> ProxysAry;
 
 	FOnInventoryProxyStateChanged InventoryProxyStateChangedEvent;
+	FDelegateHandle ItemDefineLoadedHandle;
 
 	UPROPERTY(ReplicatedUsing = OnRep_ProxyContainer)
 	FProxy_FASI_Container Proxy_FASI_Container;

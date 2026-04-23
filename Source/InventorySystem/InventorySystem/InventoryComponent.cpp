@@ -1,11 +1,9 @@
 ﻿#include "InventoryComponent.h"
-#include "Engine/AssetManager.h"
-#include "Net/UnrealNetwork.h"
+#include "InventoryItemDefinitionRegistry.h"
+#include "InventoryProxyRegistry.h"
 #include "ItemDefine.h"
 #include "ItemProxy.h"
-#include "ItemProxy_Equipment.h"
-#include "ItemProxy_Modifier.h"
-#include "ItemProxy_State.h"
+#include "Net/UnrealNetwork.h"
 
 UInventoryComponent::UInventoryComponent()
 {
@@ -26,56 +24,27 @@ void UInventoryComponent::BeginPlay()
 	Proxy_FASI_Container.OnChange.AddUObject(this, &ThisClass::HandleProxyChanged);
 	Proxy_FASI_Container.OnRemove.AddUObject(this, &ThisClass::HandleProxyRemoved);
 
-	// 预加载 ItemDefine 原型数据（后续用于 ItemTag -> Define 映射）。
-	auto& AssetManager = UAssetManager::Get();
-	TArray<FPrimaryAssetId> AssetIds;
-	AssetManager.GetPrimaryAssetIdList(ItemDefineDataAssetType, AssetIds);
+	FInventoryItemDefinitionRegistry& ItemRegistry = FInventoryItemDefinitionRegistry::Get();
+	ItemDefineLoadedHandle = ItemRegistry.AddOnItemDefineLoaded(
+		FOnInventoryItemDefineLoaded::FDelegate::CreateUObject(this, &ThisClass::HandleItemDefineLoaded));
+	ItemRegistry.Initialize();
 
-	for (const FPrimaryAssetId& Id : AssetIds)
+	// 具体 Proxy 策略由外部模块注册；库存系统只消费注册表。
+	for (const TSharedPtr<FProxyStrategy>& Strategy : FInventoryProxyRegistry::Get().GetStrategies())
 	{
-		AssetManager.LoadPrimaryAsset(
-			Id,
-			{},
-			FStreamableDelegate::CreateLambda(
-				[Id, this]()
-				{
-					if (UObject* Obj = UAssetManager::Get().GetPrimaryAssetObject(Id))
-					{
-						if (UItemDefine* Data = Cast<UItemDefine>(Obj))
-						{
-							AllItemDefineMap.Add(Data->ItemTag, Data);
+		AddGetProxyMetaStrategy(Strategy);
+	}
+}
 
-							// Define 迟加载完成后，补齐已存在 Proxy 的 ItemDefine 指针。
-							for (const TSharedPtr<FBasicProxy>& ProxySPtr : ProxysAry)
-							{
-								SyncProxyDefine(ProxySPtr);
-							}
-
-							// 服务端在定义到位后回放排队的 Add 请求，避免早期调用丢失。
-							if (GetOwner() && GetOwner()->HasAuthority())
-							{
-								int32 PendingCount = 0;
-								if (PendingAddRequests.RemoveAndCopyValue(Data->ItemTag, PendingCount) && PendingCount > 0)
-								{
-									while (PendingCount > 0)
-									{
-										const int32 BatchNum = FMath::Min(PendingCount, static_cast<int32>(TNumericLimits<uint8>::Max()));
-										AddProxy(Data->ItemTag, static_cast<uint8>(BatchNum));
-										PendingCount -= BatchNum;
-									}
-								}
-							}
-						}
-					}
-				}
-			)
-		);
+void UInventoryComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (ItemDefineLoadedHandle.IsValid())
+	{
+		FInventoryItemDefinitionRegistry::Get().RemoveOnItemDefineLoaded(ItemDefineLoadedHandle);
+		ItemDefineLoadedHandle.Reset();
 	}
 
-	// 注册默认策略：装备类、强化类。
-	AddGetProxyMetaStrategy(MakeShared<FProxy_EquipmentStrategy>());
-	AddGetProxyMetaStrategy(MakeShared<FProxy_ModifierStrategy>());
-	AddGetProxyMetaStrategy(MakeShared<FProxy_StateStrategy>());
+	Super::EndPlay(EndPlayReason);
 }
 
 void UInventoryComponent::GetLifetimeReplicatedProps(
@@ -103,14 +72,8 @@ TWeakPtr<FBasicProxy> UInventoryComponent::AddProxy(
 		return nullptr;
 	}
 
-	if (TObjectPtr<UItemDefine>* ItemDefinePtr = AllItemDefineMap.Find(ProxyType))
+	if (const UItemDefine* ItemDefine = FInventoryItemDefinitionRegistry::Get().FindItemDefineByTag(ProxyType))
 	{
-		UItemDefine* ItemDefine = *ItemDefinePtr;
-		if (!ItemDefine)
-		{
-			return nullptr;
-		}
-
 		const int32 StackLimit = ItemDefine->GetStackLimit();
 		int32 PendingNum = Num;
 		TSharedPtr<FBasicProxy> FirstChangedProxy = nullptr;
@@ -281,16 +244,7 @@ const TArray<TSharedPtr<FBasicProxy>>& UInventoryComponent::GetAllProxyList() co
 
 const UItemDefine* UInventoryComponent::FindItemDefineByTag(const FGameplayTag& ItemTag) const
 {
-	if (!ItemTag.IsValid())
-	{
-		return nullptr;
-	}
-
-	if (const TObjectPtr<UItemDefine>* Found = AllItemDefineMap.Find(ItemTag))
-	{
-		return *Found;
-	}
-	return nullptr;
+	return FInventoryItemDefinitionRegistry::Get().FindItemDefineByTag(ItemTag);
 }
 
 void UInventoryComponent::AddGetProxyMetaStrategy(
@@ -454,9 +408,43 @@ void UInventoryComponent::SyncProxyDefine(
 		return;
 	}
 
-	if (TObjectPtr<UItemDefine>* ItemDefinePtr = AllItemDefineMap.Find(ProxySPtr->ItemTag))
+	if (const UItemDefine* ItemDefine = FInventoryItemDefinitionRegistry::Get().FindItemDefineByTag(ProxySPtr->ItemTag))
 	{
-		ProxySPtr->ItemDefine = *ItemDefinePtr;
+		ProxySPtr->ItemDefine = const_cast<UItemDefine*>(ItemDefine);
+	}
+}
+
+void UInventoryComponent::HandleItemDefineLoaded(const FGameplayTag& ItemTag, const UItemDefine* ItemDefine)
+{
+	if (!ItemTag.IsValid() || !ItemDefine)
+	{
+		return;
+	}
+
+	for (const TSharedPtr<FBasicProxy>& ProxySPtr : ProxysAry)
+	{
+		SyncProxyDefine(ProxySPtr);
+	}
+
+	if (GetOwner() && GetOwner()->HasAuthority())
+	{
+		ReplayPendingAddRequests(ItemTag);
+	}
+}
+
+void UInventoryComponent::ReplayPendingAddRequests(const FGameplayTag& ItemTag)
+{
+	int32 PendingCount = 0;
+	if (!PendingAddRequests.RemoveAndCopyValue(ItemTag, PendingCount) || PendingCount <= 0)
+	{
+		return;
+	}
+
+	while (PendingCount > 0)
+	{
+		const int32 BatchNum = FMath::Min(PendingCount, static_cast<int32>(TNumericLimits<uint8>::Max()));
+		AddProxy(ItemTag, static_cast<uint8>(BatchNum));
+		PendingCount -= BatchNum;
 	}
 }
 
