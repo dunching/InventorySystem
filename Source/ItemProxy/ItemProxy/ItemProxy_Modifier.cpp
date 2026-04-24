@@ -11,9 +11,9 @@ bool FItemProxy_Modifier::NetSerialize(
 	return FBasicProxy::NetSerialize(Ar, Map, bOutSuccess);
 }
 
-FGameplayTag FProxy_ModifierStrategy::GetTag() const
+FGameplayTag FProxy_ModifierStrategy::GetProxySchemaTag() const
 {
-	return ItemSystemTags::Item_Modifier_Test;
+	return ItemSystemTags::Inventory_ProxySchema_Modifier;
 }
 
 TSharedPtr<FBasicProxy> FProxy_ModifierStrategy::GetProxy() const

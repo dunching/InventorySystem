@@ -62,7 +62,7 @@ struct TStructOpsTypeTraits<FItemProxy_State> : public TStructOpsTypeTraitsBase2
  */
 struct ITEMPROXY_API FProxy_StateStrategy : public FProxyStrategy
 {
-	virtual FGameplayTag GetTag() const override;
+	virtual FGameplayTag GetProxySchemaTag() const override;
 
 	virtual TSharedPtr<FBasicProxy> GetProxy() const override;
 };

@@ -50,7 +50,7 @@ struct TStructOpsTypeTraits<FBasicProxy> :
 
 struct ITEMPROXY_API FProxyStrategy
 {
-	virtual FGameplayTag GetTag()const;
+	virtual FGameplayTag GetProxySchemaTag() const;
 	
 	virtual TSharedPtr<FBasicProxy> GetProxy()const;
 };

@@ -58,9 +58,9 @@ bool FItemProxy_State::GetStateBool(
 	return GetStateValue(StateTag, 0.0f) > 0.0f;
 }
 
-FGameplayTag FProxy_StateStrategy::GetTag() const
+FGameplayTag FProxy_StateStrategy::GetProxySchemaTag() const
 {
-	return ItemSystemTags::Item_State;
+	return ItemSystemTags::Inventory_ProxySchema_State;
 }
 
 TSharedPtr<FBasicProxy> FProxy_StateStrategy::GetProxy() const

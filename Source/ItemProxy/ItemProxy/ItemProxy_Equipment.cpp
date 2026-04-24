@@ -11,9 +11,9 @@ bool FItemProxy_Equipment::NetSerialize(
 	return FBasicProxy::NetSerialize(Ar, Map, bOutSuccess);
 }
 
-FGameplayTag FProxy_EquipmentStrategy::GetTag() const
+FGameplayTag FProxy_EquipmentStrategy::GetProxySchemaTag() const
 {
-	return ItemSystemTags::Item_Equipment_Test;
+	return ItemSystemTags::Inventory_ProxySchema_Equipment;
 }
 
 TSharedPtr<FBasicProxy> FProxy_EquipmentStrategy::GetProxy() const

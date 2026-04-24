@@ -107,7 +107,7 @@ protected:
 	void NotifyInventoryChanged();
 
 protected:
-	TMap<FGameplayTag, TSharedPtr<FProxyStrategy>> GetProxyMetaStrategies;
+	TMap<FGameplayTag, TSharedPtr<FProxyStrategy>> ProxyStrategiesBySchema;
 
 	// 当 ItemDefine 仍在异步加载时，服务端先缓存新增请求，待资源可用后回放。
 	TMap<FGameplayTag, int32> PendingAddRequests;

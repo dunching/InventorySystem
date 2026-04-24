@@ -253,7 +253,7 @@ void UInventoryComponent::AddGetProxyMetaStrategy(
 {
 	if (ProxyMetaStrategyFunc.IsValid())
 	{
-		GetProxyMetaStrategies.Add(ProxyMetaStrategyFunc->GetTag(), ProxyMetaStrategyFunc);
+		ProxyStrategiesBySchema.Add(ProxyMetaStrategyFunc->GetProxySchemaTag(), ProxyMetaStrategyFunc);
 	}
 }
 
@@ -349,19 +349,9 @@ TSharedPtr<FProxyStrategy> UInventoryComponent::FindProxyMetaStrategy(
 	const FGameplayTag& ProxyType
 	) const
 {
-	// 优先精确匹配。
-	if (const TSharedPtr<FProxyStrategy>* Iter = GetProxyMetaStrategies.Find(ProxyType))
+	if (const TSharedPtr<FProxyStrategy>* Iter = ProxyStrategiesBySchema.Find(ProxyType))
 	{
 		return *Iter;
-	}
-
-	// 其次父标签匹配（允许用更宽泛标签覆盖多个子类道具）。
-	for (const TPair<FGameplayTag, TSharedPtr<FProxyStrategy>>& Iter : GetProxyMetaStrategies)
-	{
-		if (ProxyType.MatchesTag(Iter.Key))
-		{
-			return Iter.Value;
-		}
 	}
 
 	return nullptr;
@@ -377,7 +367,7 @@ TSharedPtr<FBasicProxy> UInventoryComponent::CreateProxyInstance(
 	}
 
 	TSharedPtr<FBasicProxy> ItemProxySPtr = nullptr;
-	if (TSharedPtr<FProxyStrategy> Strategy = FindProxyMetaStrategy(ItemDefine->ItemTag))
+	if (TSharedPtr<FProxyStrategy> Strategy = FindProxyMetaStrategy(ItemDefine->GetInventoryProxySchemaTag()))
 	{
 		ItemProxySPtr = Strategy->GetProxy();
 	}
