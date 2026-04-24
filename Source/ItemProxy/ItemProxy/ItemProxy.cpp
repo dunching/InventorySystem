@@ -67,6 +67,21 @@ bool FBasicProxy::IsInUse() const
 	return false;
 }
 
+bool FBasicProxy::IsEquipmentProxy() const
+{
+	return false;
+}
+
+void FBasicProxy::SetInstalledModifierProxyIds(const TArray<FGuid>& InModifierProxyIds)
+{
+}
+
+const TArray<FGuid>& FBasicProxy::GetInstalledModifierProxyIds() const
+{
+	static const TArray<FGuid> EmptyModifierProxyIds;
+	return EmptyModifierProxyIds;
+}
+
 FGameplayTag FProxyStrategy::GetProxySchemaTag() const
 {
 	return FGameplayTag::EmptyTag;

@@ -17,6 +17,8 @@ struct ITEMPROXY_API FItemProxy_Equipment : public FBasicProxy
 	GENERATED_USTRUCT_BODY()
 
 public:
+	virtual bool IsEquipmentProxy() const override;
+
 	virtual bool NetSerialize(
 		FArchive& Ar,
 		class UPackageMap* Map,
@@ -26,8 +28,8 @@ public:
 	bool AddInstalledModifierProxyId(const FGuid& ModifierProxyId);
 	bool RemoveInstalledModifierProxyId(const FGuid& ModifierProxyId);
 	bool HasInstalledModifierProxyId(const FGuid& ModifierProxyId) const;
-	void SetInstalledModifierProxyIds(const TArray<FGuid>& InModifierProxyIds);
-	const TArray<FGuid>& GetInstalledModifierProxyIds() const;
+	virtual void SetInstalledModifierProxyIds(const TArray<FGuid>& InModifierProxyIds) override;
+	virtual const TArray<FGuid>& GetInstalledModifierProxyIds() const override;
 
 private:
 	TArray<FGuid> InstalledModifierProxyIds;

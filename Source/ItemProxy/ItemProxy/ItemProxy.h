@@ -25,6 +25,9 @@ public:
 		);
 
 	virtual bool IsInUse() const;
+	virtual bool IsEquipmentProxy() const;
+	virtual void SetInstalledModifierProxyIds(const TArray<FGuid>& InModifierProxyIds);
+	virtual const TArray<FGuid>& GetInstalledModifierProxyIds() const;
 
 	// FastArray 增删改时使用的稳定运行时 ID。
 	FGuid ProxyId = FGuid::NewGuid();

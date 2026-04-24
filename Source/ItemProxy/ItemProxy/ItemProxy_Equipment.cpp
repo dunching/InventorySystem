@@ -1,5 +1,10 @@
-﻿#include "ItemProxy_Equipment.h"
+#include "ItemProxy_Equipment.h"
 #include "ItemSystemTags.h"
+
+bool FItemProxy_Equipment::IsEquipmentProxy() const
+{
+	return true;
+}
 
 bool FItemProxy_Equipment::NetSerialize(
 	FArchive& Ar,
