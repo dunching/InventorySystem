@@ -17,6 +17,8 @@ void FInventoryProxyRegistry::RegisterStrategy(const FName OwnerName, const TSha
 	FInventoryProxyRegistryEntry& Entry = Entries.AddDefaulted_GetRef();
 	Entry.OwnerName = OwnerName;
 	Entry.Strategy = Strategy;
+
+	FProxyStrategy::RegisterGlobalStrategy(Strategy);
 }
 
 void FInventoryProxyRegistry::UnregisterStrategies(const FName OwnerName)
@@ -24,6 +26,14 @@ void FInventoryProxyRegistry::UnregisterStrategies(const FName OwnerName)
 	if (OwnerName.IsNone())
 	{
 		return;
+	}
+
+	for (const FInventoryProxyRegistryEntry& Entry : Entries)
+	{
+		if (Entry.OwnerName == OwnerName && Entry.Strategy.IsValid())
+		{
+			FProxyStrategy::UnregisterGlobalStrategy(Entry.Strategy->GetProxySchemaTag());
+		}
 	}
 
 	Entries.RemoveAll([OwnerName](const FInventoryProxyRegistryEntry& Entry)

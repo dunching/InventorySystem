@@ -1,5 +1,14 @@
 #include "ItemProxy.h"
 
+namespace
+{
+	TMap<FGameplayTag, TSharedPtr<FProxyStrategy>>& GetGlobalProxyStrategies()
+	{
+		static TMap<FGameplayTag, TSharedPtr<FProxyStrategy>> Strategies;
+		return Strategies;
+	}
+}
+
 FBasicProxy::~FBasicProxy()
 {
 }
@@ -61,4 +70,55 @@ FGameplayTag FProxyStrategy::GetProxySchemaTag() const
 TSharedPtr<FBasicProxy> FProxyStrategy::GetProxy() const
 {
 	return nullptr;
+}
+
+void FProxyStrategy::RegisterGlobalStrategy(const TSharedPtr<FProxyStrategy>& Strategy)
+{
+	if (!Strategy.IsValid())
+	{
+		return;
+	}
+
+	const FGameplayTag SchemaTag = Strategy->GetProxySchemaTag();
+	if (!SchemaTag.IsValid())
+	{
+		return;
+	}
+
+	GetGlobalProxyStrategies().Add(SchemaTag, Strategy);
+}
+
+void FProxyStrategy::UnregisterGlobalStrategy(const FGameplayTag& ProxySchemaTag)
+{
+	if (!ProxySchemaTag.IsValid())
+	{
+		return;
+	}
+
+	GetGlobalProxyStrategies().Remove(ProxySchemaTag);
+}
+
+TSharedPtr<FBasicProxy> FProxyStrategy::CreateProxyBySchemaTag(const FGameplayTag& ProxySchemaTag)
+{
+	if (!ProxySchemaTag.IsValid())
+	{
+		return MakeShared<FBasicProxy>();
+	}
+
+	if (const TSharedPtr<FProxyStrategy>* FoundStrategy = GetGlobalProxyStrategies().Find(ProxySchemaTag))
+	{
+		if (FoundStrategy->IsValid())
+		{
+			TSharedPtr<FBasicProxy> Proxy = (*FoundStrategy)->GetProxy();
+			if (Proxy.IsValid())
+			{
+				Proxy->ProxySchemaTag = ProxySchemaTag;
+				return Proxy;
+			}
+		}
+	}
+
+	TSharedPtr<FBasicProxy> FallbackProxy = MakeShared<FBasicProxy>();
+	FallbackProxy->ProxySchemaTag = ProxySchemaTag;
+	return FallbackProxy;
 }

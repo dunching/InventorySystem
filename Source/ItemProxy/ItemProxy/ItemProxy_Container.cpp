@@ -31,22 +31,30 @@ bool FProxy_FASI::NetSerialize(
 	bool& bOutSuccess
 	)
 {
-	// 反序列化时先确保有可写入的 Proxy 对象。
+	FGameplayTag ProxySchemaTag = ProxySPtr.IsValid() ? ProxySPtr->ProxySchemaTag : FGameplayTag::EmptyTag;
+	Ar << ProxySchemaTag;
+
+	if (Ar.IsLoading())
+	{
+		const bool bNeedsRecreate = !ProxySPtr.IsValid() || ProxySPtr->ProxySchemaTag != ProxySchemaTag;
+		if (bNeedsRecreate)
+		{
+			ProxySPtr = FProxyStrategy::CreateProxyBySchemaTag(ProxySchemaTag);
+		}
+	}
+
+	// 兜底：缺少 schema 注册时仍保留基础 Proxy，避免整条记录丢失。
 	if (!ProxySPtr.IsValid())
 	{
 		ProxySPtr = MakeShared<FBasicProxy>();
 	}
 
-	// 实际字段序列化交由 FBasicProxy 处理。
+	ProxySPtr->ProxySchemaTag = ProxySchemaTag;
+
 	const bool Result = ProxySPtr->NetSerialize(Ar, Map, bOutSuccess);
 	if (!Result)
 	{
 		return false;
-	}
-
-	// 预留扩展点：可在加载后根据 ItemTag 派生具体 Proxy 子类。
-	if (Ar.IsLoading())
-	{
 	}
 
 	bOutSuccess = true;

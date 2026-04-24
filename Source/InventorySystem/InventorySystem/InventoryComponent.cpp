@@ -380,6 +380,7 @@ TSharedPtr<FBasicProxy> UInventoryComponent::CreateProxyInstance(
 
 	ItemProxySPtr->ItemDefine = const_cast<UItemDefine*>(ItemDefine);
 	ItemProxySPtr->ItemTag = ItemDefine->ItemTag;
+	ItemProxySPtr->ProxySchemaTag = ItemDefine->GetInventoryProxySchemaTag();
 	ItemProxySPtr->Count = 1;
 	if (!ItemProxySPtr->ProxyId.IsValid())
 	{
