@@ -48,7 +48,14 @@ public:
 		const FGameplayTag& ProxyType
 		) const;
 
+	int32 GetAvailableProxyCount(
+		const FGameplayTag& ProxyType
+		) const;
+
 	const TArray<TSharedPtr<FBasicProxy>>& GetAllProxyList() const;
+	TWeakPtr<FBasicProxy> FindProxyById(const FGuid& ProxyId) const;
+	TWeakPtr<FBasicProxy> FindFirstAvailableProxyByTag(const FGameplayTag& ProxyType) const;
+	bool MarkProxyDirty(const FGuid& ProxyId);
 
 	FOnInventoryProxyStateChanged& OnInventoryProxyStateChanged()
 	{

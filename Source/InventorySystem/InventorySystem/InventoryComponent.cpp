@@ -186,7 +186,7 @@ bool UInventoryComponent::RemoveProxy(
 	for (int32 Index = ProxysAry.Num() - 1; Index >= 0 && PendingNum > 0; --Index)
 	{
 		const TSharedPtr<FBasicProxy>& ProxySPtr = ProxysAry[Index];
-		if (!ProxySPtr.IsValid() || !ProxySPtr->ItemTag.MatchesTagExact(ProxyType))
+		if (!ProxySPtr.IsValid() || !ProxySPtr->ItemTag.MatchesTagExact(ProxyType) || ProxySPtr->IsInUse())
 		{
 			continue;
 		}
@@ -237,9 +237,78 @@ int32 UInventoryComponent::GetProxyCount(
 	return TotalCount;
 }
 
+int32 UInventoryComponent::GetAvailableProxyCount(
+	const FGameplayTag& ProxyType
+	) const
+{
+	if (!ProxyType.IsValid())
+	{
+		return 0;
+	}
+
+	int32 TotalCount = 0;
+	for (const TSharedPtr<FBasicProxy>& ProxySPtr : ProxysAry)
+	{
+		if (ProxySPtr.IsValid() && ProxySPtr->ItemTag.MatchesTagExact(ProxyType) && !ProxySPtr->IsInUse())
+		{
+			TotalCount += ProxySPtr->Count;
+		}
+	}
+
+	return TotalCount;
+}
+
 const TArray<TSharedPtr<FBasicProxy>>& UInventoryComponent::GetAllProxyList() const
 {
 	return ProxysAry;
+}
+
+TWeakPtr<FBasicProxy> UInventoryComponent::FindProxyById(const FGuid& ProxyId) const
+{
+	if (!ProxyId.IsValid())
+	{
+		return nullptr;
+	}
+
+	for (const TSharedPtr<FBasicProxy>& ProxySPtr : ProxysAry)
+	{
+		if (ProxySPtr.IsValid() && ProxySPtr->ProxyId == ProxyId)
+		{
+			return ProxySPtr;
+		}
+	}
+
+	return nullptr;
+}
+
+TWeakPtr<FBasicProxy> UInventoryComponent::FindFirstAvailableProxyByTag(const FGameplayTag& ProxyType) const
+{
+	if (!ProxyType.IsValid())
+	{
+		return nullptr;
+	}
+
+	for (const TSharedPtr<FBasicProxy>& ProxySPtr : ProxysAry)
+	{
+		if (ProxySPtr.IsValid() && ProxySPtr->ItemTag.MatchesTagExact(ProxyType) && !ProxySPtr->IsInUse())
+		{
+			return ProxySPtr;
+		}
+	}
+
+	return nullptr;
+}
+
+bool UInventoryComponent::MarkProxyDirty(const FGuid& ProxyId)
+{
+	if (!GetOwner() || !GetOwner()->HasAuthority() || !ProxyId.IsValid())
+	{
+		return false;
+	}
+
+	Proxy_FASI_Container.UpdateItem(ProxyId);
+	NotifyInventoryChanged();
+	return true;
 }
 
 const UItemDefine* UInventoryComponent::FindItemDefineByTag(const FGameplayTag& ItemTag) const

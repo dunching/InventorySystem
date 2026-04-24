@@ -62,6 +62,11 @@ bool FBasicProxy::NetSerialize(
 	return true;
 }
 
+bool FBasicProxy::IsInUse() const
+{
+	return false;
+}
+
 FGameplayTag FProxyStrategy::GetProxySchemaTag() const
 {
 	return FGameplayTag::EmptyTag;

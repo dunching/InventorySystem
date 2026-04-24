@@ -17,11 +17,20 @@ struct ITEMPROXY_API FItemProxy_Modifier : public FBasicProxy
 	GENERATED_USTRUCT_BODY()
 
 public:
+	virtual bool IsInUse() const override;
+
 	virtual bool NetSerialize(
 		FArchive& Ar,
 		class UPackageMap* Map,
 		bool& bOutSuccess
 		) override;
+
+	void SetUsingEquipmentProxyId(const FGuid& InEquipmentProxyId);
+	void ClearUsingEquipmentProxyId();
+	const FGuid& GetUsingEquipmentProxyId() const;
+
+private:
+	FGuid UsingEquipmentProxyId;
 };
 
 template <>

@@ -22,6 +22,15 @@ public:
 		class UPackageMap* Map,
 		bool& bOutSuccess
 		) override;
+
+	bool AddInstalledModifierProxyId(const FGuid& ModifierProxyId);
+	bool RemoveInstalledModifierProxyId(const FGuid& ModifierProxyId);
+	bool HasInstalledModifierProxyId(const FGuid& ModifierProxyId) const;
+	void SetInstalledModifierProxyIds(const TArray<FGuid>& InModifierProxyIds);
+	const TArray<FGuid>& GetInstalledModifierProxyIds() const;
+
+private:
+	TArray<FGuid> InstalledModifierProxyIds;
 };
 
 template <>

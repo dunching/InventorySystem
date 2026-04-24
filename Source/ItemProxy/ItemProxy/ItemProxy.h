@@ -24,6 +24,8 @@ public:
 		bool& bOutSuccess
 		);
 
+	virtual bool IsInUse() const;
+
 	// FastArray 增删改时使用的稳定运行时 ID。
 	FGuid ProxyId = FGuid::NewGuid();
 
